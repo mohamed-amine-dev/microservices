@@ -80,7 +80,6 @@ application-prod.properties
 **/application-secrets.properties
 
 # Docker
-.dockerignore
 
 # Node (if frontend included)
 node_modules/

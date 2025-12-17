@@ -1,8 +1,6 @@
 FROM maven:3.9-amazoncorretto-17 AS build
 WORKDIR /app
-COPY pom.xml .
-COPY common-library common-library
-COPY service-discovery service-discovery
+COPY . .
 RUN mvn clean install -pl service-discovery -am -DskipTests
 
 FROM amazoncorretto:17-alpine

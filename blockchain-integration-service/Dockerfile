@@ -1,8 +1,6 @@
 FROM maven:3.9-amazoncorretto-17 AS build
 WORKDIR /app
-COPY pom.xml .
-COPY common-library common-library
-COPY blockchain-integration-service blockchain-integration-service
+COPY . .
 RUN mvn clean install -pl blockchain-integration-service -am -DskipTests
 
 FROM amazoncorretto:17-alpine

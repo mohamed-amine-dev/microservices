@@ -1,0 +1,12 @@
+**/target
+**/.mvn
+**/.git
+**/.idea
+**/*.iml
+**/logs
+**/tmp
+.vscode
+*.md
+LICENSE
+Dockerfile
+docker-compose.yml
