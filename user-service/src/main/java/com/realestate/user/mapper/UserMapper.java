@@ -1,6 +1,6 @@
 package com.realestate.user.mapper;
 
-import com.realestate.user.dto.UserResponse;
+import com.realestate.common.dto.UserResponse;
 import com.realestate.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -10,6 +10,6 @@ import org.mapstruct.MappingConstants;
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
-    
+
     UserResponse toUserResponse(User user);
 }

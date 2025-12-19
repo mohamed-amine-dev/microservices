@@ -1,12 +1,5 @@
-**/target
-**/.mvn
-**/.git
-**/.idea
-**/*.iml
-**/logs
-**/tmp
-.vscode
-*.md
-LICENSE
-Dockerfile
-docker-compose.yml
+# Ignore everything
+*
+
+# Allow only JAR files in target folders
+!**/target/*.jar

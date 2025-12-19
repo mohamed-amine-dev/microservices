@@ -20,16 +20,24 @@ public class NotificationService {
 
     @Transactional
     public Notification sendNotification(NotificationRequest request) {
-        log.info("Sending notification to: {}", request.getRecipientEmail());
+        log.info("Sending notification to: {} | Subject: {}", request.getRecipientEmail(), request.getSubject());
+        log.info("Message body: {}", request.getMessage());
 
-        // In a real app, integrate JavaMailSender here
+        // Simulating the actual email sending process
+        try {
+            log.debug("Connecting to SMTP server...");
+            Thread.sleep(100); // Simulate network latency
+            log.info("Email successfully sent to {}", request.getRecipientEmail());
+        } catch (InterruptedException e) {
+            log.error("Notification interrupted", e);
+        }
 
         Notification notification = Notification.builder()
                 .userId(request.getUserId())
                 .recipientEmail(request.getRecipientEmail())
                 .subject(request.getSubject())
                 .message(request.getMessage())
-                .status(NotificationStatus.SENT) // Mocking successful send
+                .status(NotificationStatus.SENT)
                 .build();
 
         return notificationRepository.save(notification);

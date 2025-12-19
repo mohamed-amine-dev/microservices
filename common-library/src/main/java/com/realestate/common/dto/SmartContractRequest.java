@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Data
 @Builder
@@ -23,4 +24,5 @@ public class SmartContractRequest {
     private String walletAddress;
     private BigDecimal value;
     private String contractAddress;
+    private Map<String, Object> parameters;
 }

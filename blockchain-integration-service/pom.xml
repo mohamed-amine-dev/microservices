@@ -40,6 +40,16 @@
             <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.web3j</groupId>
+            <artifactId>codegen</artifactId>
+            <version>4.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.realestate</groupId>
             <artifactId>common-library</artifactId>
         </dependency>

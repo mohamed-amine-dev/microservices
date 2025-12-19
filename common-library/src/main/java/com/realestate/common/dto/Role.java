@@ -1,4 +1,4 @@
-package com.realestate.user.entity;
+package com.realestate.common.dto;
 
 /**
  * User roles enum

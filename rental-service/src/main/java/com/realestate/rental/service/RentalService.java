@@ -1,6 +1,8 @@
 package com.realestate.rental.service;
 
 import com.realestate.common.dto.NotificationEvent;
+import com.realestate.common.dto.Role;
+import com.realestate.common.dto.UserResponse;
 import com.realestate.rental.dto.RentalRequest;
 import com.realestate.rental.dto.RentalResponse;
 import com.realestate.rental.entity.RentalAgreement;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,10 +25,27 @@ public class RentalService {
 
     private final RentalRepository rentalRepository;
     private final RentalEventProducer rentalEventProducer;
+    private final com.realestate.rental.client.BlockchainClient blockchainClient;
+    private final com.realestate.rental.client.UserClient userClient;
 
     @Transactional
     public RentalResponse createRental(RentalRequest request) {
         log.info("Creating rental agreement for property: {}", request.getPropertyId());
+
+        // Fetch user data for extra information
+        com.realestate.common.dto.UserResponse tenant = null;
+        com.realestate.common.dto.UserResponse owner = null;
+        try {
+            var tenantResp = userClient.getUserById(request.getTenantId());
+            if (tenantResp != null)
+                tenant = tenantResp.getData();
+
+            var ownerResp = userClient.getUserById(request.getOwnerId());
+            if (ownerResp != null)
+                owner = ownerResp.getData();
+        } catch (Exception e) {
+            log.warn("Could not fetch user data for rental creation: {}", e.getMessage());
+        }
 
         RentalAgreement agreement = RentalAgreement.builder()
                 .propertyId(request.getPropertyId())
@@ -40,11 +60,36 @@ public class RentalService {
 
         RentalAgreement savedAgreement = rentalRepository.save(agreement);
 
+        // Record agreement on blockchain
+        try {
+            com.realestate.common.dto.SmartContractRequest blockchainRequest = new com.realestate.common.dto.SmartContractRequest();
+            blockchainRequest.setFunctionName("createAgreement");
+
+            // Use wallet address if available, otherwise fallback to ID
+            String ownerAddress = (owner != null && owner.getWalletAddress() != null)
+                    ? owner.getWalletAddress()
+                    : "0x" + agreement.getOwnerId();
+
+            blockchainRequest.setParameters(java.util.Map.of(
+                    "owner", ownerAddress,
+                    "rentAmount", agreement.getMonthlyRent(),
+                    "deposit", agreement.getDepositAmount()));
+
+            var response = blockchainClient.executeTransaction(blockchainRequest);
+            if (response != null && response.getData() != null) {
+                log.info("Blockchain transaction successful. Hash: {}", response.getData().get("transactionHash"));
+            }
+        } catch (Exception e) {
+            log.error("Failed to record agreement on blockchain", e);
+        }
+
         // Send notification event
         try {
+            String tenantEmail = (tenant != null) ? tenant.getEmail() : "tenant@example.com";
+
             NotificationEvent event = NotificationEvent.builder()
                     .recipientId(savedAgreement.getTenantId())
-                    .recipientEmail("tenant@example.com") // In real app, fetch user email
+                    .recipientEmail(tenantEmail)
                     .subject("Rental Agreement Created")
                     .message("Your rental agreement for property " + savedAgreement.getPropertyId()
                             + " has been created.")

@@ -1,6 +1,5 @@
-package com.realestate.user.dto;
+package com.realestate.common.dto;
 
-import com.realestate.user.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-    
+
     private Long id;
     private String email;
     private String firstName;

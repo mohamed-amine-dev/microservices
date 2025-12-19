@@ -27,15 +27,19 @@ public class PaymentService {
 
         // 1. Execute Blockchain Transaction
         SmartContractRequest blockchainRequest = SmartContractRequest.builder()
-                .functionName("processPayment")
-                .propertyId(request.getRentalId()) // Using rental ID as proxy for simplicity
-                .value(request.getAmount())
+                .functionName("payRent")
+                .parameters(java.util.Map.of(
+                        "agreementId", request.getRentalId().toString(), // Using rental ID as proxy
+                        "amount", request.getAmount().toBigInteger().multiply(java.math.BigInteger.valueOf(10).pow(18)) // Simplistic
+                                                                                                                        // ETH
+                                                                                                                        // conversion
+                ))
                 .build();
 
         String txHash = "PENDING";
         try {
             var response = blockchainClient.executeTransaction(blockchainRequest);
-            if (response.getData() != null) {
+            if (response != null && response.getData() != null) {
                 txHash = (String) response.getData().get("transactionHash");
             }
         } catch (Exception e) {
