@@ -1,165 +1,168 @@
-# Real Estate Rental Platform - Frontend Integration Guide
+# Frontend Integration Guide
 
-## 📋 For Frontend Developers
+## Overview
 
-This document provides everything you need to integrate with the Real Estate Rental Platform backend.
+The backend is a microservices architecture exposed via a central API Gateway.
+**Base URL:** `http://localhost:8080`
 
----
+All requests should be directed to the Base URL. The gateway handles routing to specific services based on the path.
 
-## 🚀 Quick Start
+## Global Configuration
 
-### Base URLs
+### CORS
+The API Gateway is configured to allow Cross-Origin Resource Sharing (CORS) from any origin (`*`).
+Allowed Methods: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS`.
 
-**Production/Development:**
-- API Gateway (all requests): `http://localhost:8080`
-- Eureka Dashboard: `http://localhost:8761`
+### Authentication
+Most endpoints require a JWT token for authentication.
+**Header:** `Authorization: Bearer <your_token>`
 
----
+## Services & Endpoints
 
-## 🔐 Authentication Flow
+### 1. User Service
+**Base Path:** `/api/users`
 
-### 1. Register a New User
+| Method | Endpoint | Description | Auth Required |
+|lz|---|---|---|
+| POST | `/register` | Register a new user | No |
+| POST | `/login` | Authenticate and get JWT | No |
+| GET | `/profile/{id}` | Get user profile by ID | Yes |
+| PUT | `/profile/{id}` | Update user profile | Yes |
+| GET | `/email/{email}` | Get user by email | Yes |
+| GET | `/wallet/{walletAddress}` | Get user by wallet address | Yes |
+| GET | `/` | Get all users | Yes (Admin) |
+| DELETE | `/{id}` | Delete user | Yes (Admin) |
+| POST | `/verify-email/{userId}` | Verify user email | No |
 
-**Endpoint:** `POST /api/users/register`
-
-**Request:**
+**Register Payload:**
 ```json
 {
-  "email": "john.doe@example.com",
+  "email": "user@example.com",
   "password": "SecurePassword123",
   "firstName": "John",
   "lastName": "Doe",
-  "role": "OWNER",  // "OWNER", "TENANT", or "ADMIN"
-  "walletAddress": "0x1234...abcd"  // optional
+  "role": "BUYER", // BUYER, SELLER, OWNER, TENANT
+  "walletAddress": "0x123..." // Optional
 }
 ```
 
-### 2. Login
+### 2. Property Service
+**Base Path:** `/api/properties`
 
-**Endpoint:** `POST /api/users/login`
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| POST | `/` | Create a property listing | Yes (Owner/Seller) |
+| GET | `/{id}` | Get property details | No |
+| GET | `/search` | Search properties | No |
+| PUT | `/{id}` | Update property | Yes (Owner) |
+| DELETE | `/{id}` | Delete property | Yes (Owner/Admin) |
+| PATCH | `/{id}/status` | Update property status | Yes (Owner/Admin) |
 
-**Request:**
+**Search Parameters:**
+- `city`, `country`, `minPrice`, `maxPrice`, `bedrooms`, `status`
+
+**Create Property Payload:**
 ```json
 {
-  "email": "john.doe@example.com",
-  "password": "SecurePassword123"
+  "title": "Luxury Apartment",
+  "description": "Beautiful view...",
+  "price": 1500.00,
+  "address": "123 Main St",
+  "city": "New York",
+  "country": "USA",
+  "type": "APARTMENT", // APARTMENT, HOUSE, VILLA
+  "bedrooms": 2,
+  "bathrooms": 1,
+  "area": 85.5,
+  "images": ["url1", "url2"]
 }
 ```
 
-**Response:**
-Returns a JWT token. You must include this token in the `Authorization` header as `Bearer <token>` for all protected endpoints.
+### 3. Rental Service
+**Base Path:** `/api/rentals`
 
----
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| POST | `/` | Create rental agreement | Yes (Tenant) |
+| GET | `/{id}` | Get rental details | Yes |
+| GET | `/tenant/{tenantId}` | Get rentals for tenant | Yes |
+| GET | `/owner/{ownerId}` | Get rentals for owner | Yes |
+| PATCH | `/{id}/status` | Update rental status | Yes |
 
-## 🏠 Property Management API
-
-### List All Properties / Search
-`GET /api/properties/search`
-Query params: `city`, `minPrice`, `maxPrice`, `bedrooms`, `status`.
-
-### Get Single Property
-`GET /api/properties/{id}`
-
-### Create Property (Owner Only)
-`POST /api/properties`
-
-### Update Property
-`PUT /api/properties/{id}`
-
----
-
-## 🏢 Rental Management API
-
-### Create Rental Request (Tenant)
-`POST /api/rentals`
-**Request:**
+**Create Rental Payload:**
 ```json
 {
   "propertyId": 1,
-  "tenantId": 101, // In real app, derived from Token
-  "ownerId": 202,
+  "tenantId": 1,
   "startDate": "2025-01-01",
   "endDate": "2025-12-31",
-  "monthlyRent": 1500.0,
-  "depositAmount": 3000.0
-}
-```
-*Note: This endpoint triggers an async notification to the Tenant.*
-
-### Get Rentals
-- By Tenant: `GET /api/rentals/tenant/{tenantId}`
-- By Owner: `GET /api/rentals/owner/{ownerId}`
-
----
-
-## 🔔 Notification API
-
-### Get User Notifications
-`GET /api/notifications/user/{userId}`
-
-**Response:**
-```json
-{
-  "status": 200,
-  "data": [
-    {
-      "id": 1,
-      "recipientEmail": "tenant@example.com",
-      "subject": "Rental Agreement Created",
-      "message": "Your rental agreement for property 1 has been created.",
-      "status": "SENT",
-      "createdAt": "2025-01-01T10:00:00"
-    }
-  ]
+  "monthlyRent": 1500.00
 }
 ```
 
-### Send Notification (Testing)
-`POST /api/notifications`
-This is primarily internal, but exposed for testing.
+### 4. Payment Service
+**Base Path:** `/api/payments`
 
----
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| POST | `/` | Process a payment | Yes |
+| GET | `/{id}` | Get payment details | Yes |
+| GET | `/rental/{rentalId}` | Get payments for a rental | Yes |
+| GET | `/payer/{payerId}` | Get payments by payer | Yes |
 
-## ⛓️ Blockchain API
-
-### Execute Smart Contract Transaction
-`POST /api/blockchain/transaction`
-**Request:**
-```json
-{
-  "functionName": "createRentalAgreement",
-  "propertyId": 1,
-  "value": 1500.00
-}
-```
-
-### Get Contract State
-`GET /api/blockchain/contract/{address}`
-
----
-
-## 💳 Payment API
-
-### Process Payment
-`POST /api/payments`
-**Request:**
+**Payment Payload:**
 ```json
 {
   "rentalId": 1,
-  "payerId": 101,
-  "payeeId": 202,
+  "payerId": 1,
   "amount": 1500.00,
-  "currency": "ETH"
+  "currency": "USD", // or ETH
+  "method": "CREDIT_CARD", // CREDIT_CARD, CRYPTO
+  "transactionHash": "0x..." // If CRYPTO
 }
 ```
 
-### Get Payment History
-`GET /api/payments/rental/{rentalId}`
+### 5. Blockchain Integration Service
+**Base Path:** `/api/blockchain`
 
----
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| POST | `/transaction` | Execute smart contract transaction | Yes |
+| GET | `/contract/{address}` | Get smart contract state | Yes |
 
-## ⚠️ Important Notes
+**Smart Contract Request:**
+```json
+{
+  "contractAddress": "0x...",
+  "functionName": "payRent",
+  "parameters": ["..."]
+}
+```
 
-1. **Async Notifications**: The backend uses RabbitMQ. When a Rental is created, a notification is asynchronously generated. The frontend can poll `/api/notifications/user/{id}` to see them.
-2. **Blockchain Mock**: The blockchain service currently returns mocked transaction hashes (`0x...`). This allows you to build the UI flow without waiting for a real Ethereum transaction.
+### 6. Notification Service
+**Base Path:** `/api/notifications`
 
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| POST | `/` | Send a notification (System use) | Yes |
+| GET | `/user/{userId}` | Get user notifications | Yes |
+
+## Error Handling
+
+Standard Error Response:
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "data": null
+}
+```
+
+Common HTTP Codes:
+- `200`: Success
+- `201`: Created
+- `400`: Bad Request (Validation failed)
+- `401`: Unauthorized (Invalid/Missing Token)
+- `403`: Forbidden (Insufficient permissions)
+- `404`: Not Found
+- `500`: Internal Server Error

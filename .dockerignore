@@ -1,5 +1,15 @@
-# Ignore everything
-*
-
-# Allow only JAR files in target folders
-!**/target/*.jar
+# Ignore build artifacts and IDE folders
+target/
+**/target/
+.git/
+**/.git/
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
+*.log
+**/node_modules/
+docker-compose.override.yml
+# Ignore blockchain build artifacts if any
+blockchain-contracts/artifacts/
+blockchain-contracts/cache/

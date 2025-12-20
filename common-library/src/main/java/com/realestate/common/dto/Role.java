@@ -6,5 +6,7 @@ package com.realestate.common.dto;
 public enum Role {
     OWNER,
     TENANT,
-    ADMIN
+    ADMIN,
+    BUYER,
+    SELLER
 }
