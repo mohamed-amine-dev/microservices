@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 public class PropertyService {
-    
+
     private final PropertyRepository propertyRepository;
-    
+
     public PropertyResponse createProperty(PropertyRequest request) {
         Property property = Property.builder()
                 .title(request.getTitle())
@@ -40,29 +40,37 @@ public class PropertyService {
                 .propertyType(request.getPropertyType())
                 .ownerId(request.getOwnerId())
                 .build();
-        
+
         Property saved = propertyRepository.save(property);
         return toResponse(saved);
     }
-    
+
     @Transactional(readOnly = true)
     public PropertyResponse getPropertyById(Long id) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", id));
         return toResponse(property);
     }
-    
+
     @Transactional(readOnly = true)
-    public List<PropertyResponse> searchProperties(String city, String country, 
+    public List<PropertyResponse> searchProperties(String city, String country,
             BigDecimal minPrice, BigDecimal maxPrice, Integer bedrooms, PropertyStatus status) {
         return propertyRepository.searchProperties(city, country, minPrice, maxPrice, bedrooms, status)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
-    
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<PropertyResponse> searchProperties(String city, String country,
+            BigDecimal minPrice, BigDecimal maxPrice, Integer bedrooms, PropertyStatus status,
+            org.springframework.data.domain.Pageable pageable) {
+        return propertyRepository.searchProperties(city, country, minPrice, maxPrice, bedrooms, status, pageable)
+                .map(this::toResponse);
+    }
+
     public PropertyResponse updateProperty(Long id, PropertyRequest request) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", id));
-        
+
         property.setTitle(request.getTitle());
         property.setDescription(request.getDescription());
         property.setAddress(request.getAddress());
@@ -73,24 +81,24 @@ public class PropertyService {
         property.setBedroomCount(request.getBedroomCount());
         property.setBathroomCount(request.getBathroomCount());
         property.setSquareMeters(request.getSquareMeters());
-        
+
         return toResponse(propertyRepository.save(property));
     }
-    
+
     public void deleteProperty(Long id) {
         if (!propertyRepository.existsById(id)) {
             throw new ResourceNotFoundException("Property", "id", id);
         }
         propertyRepository.deleteById(id);
     }
-    
+
     public PropertyResponse updateStatus(Long id, PropertyStatus status) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", id));
         property.setStatus(status);
         return toResponse(propertyRepository.save(property));
     }
-    
+
     private PropertyResponse toResponse(Property property) {
         return PropertyResponse.builder()
                 .id(property.getId())

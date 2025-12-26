@@ -9,9 +9,26 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
 
 blockchain:
-  node-url: ${BLOCKCHAIN_NODE_URL:https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID}
-  private-key: ${BLOCKCHAIN_PRIVATE_KEY:YOUR_PRIVATE_KEY_HERE}
-  contract-address: ${RENTAL_CONTRACT_ADDRESS:0x5FbDB2315678afecb367f032d93F642f64180aa3}
+  # IMPORTANT: Set these environment variables before running in production
+  # BLOCKCHAIN_NODE_URL: Your Ethereum node URL (e.g., https://sepolia.infura.io/v3/YOUR_PROJECT_ID)
+  # BLOCKCHAIN_PRIVATE_KEY: Your wallet private key (keep this secret!)
+  # RENTAL_CONTRACT_ADDRESS: Deployed RentalAgreement contract address
+  node-url: ${BLOCKCHAIN_NODE_URL:https://sepolia.infura.io/v3/PLACEHOLDER}
+  private-key: ${BLOCKCHAIN_PRIVATE_KEY:PLACEHOLDER_PRIVATE_KEY}
+  contract-address: ${RENTAL_CONTRACT_ADDRESS:0x0000000000000000000000000000000000000000}
   gas-limit: ${BLOCKCHAIN_GAS_LIMIT:4700000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    com.realestate.blockchain: DEBUG
+    org.web3j: INFO

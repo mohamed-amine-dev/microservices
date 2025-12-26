@@ -37,16 +37,33 @@ public class RentalController {
         return ResponseEntity.ok(ResponseWrapper.success(rentalService.getRentalById(id)));
     }
 
+    @GetMapping
+    @Operation(summary = "Get all rentals")
+    public ResponseEntity<ResponseWrapper<org.springframework.data.domain.Page<RentalResponse>>> getAllRentals(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(ResponseWrapper.success(rentalService.getAllRentals(pageable)));
+    }
+
     @GetMapping("/tenant/{tenantId}")
     @Operation(summary = "Get rentals by tenant")
-    public ResponseEntity<ResponseWrapper<List<RentalResponse>>> getRentalsByTenant(@PathVariable Long tenantId) {
-        return ResponseEntity.ok(ResponseWrapper.success(rentalService.getRentalsByTenant(tenantId)));
+    public ResponseEntity<ResponseWrapper<org.springframework.data.domain.Page<RentalResponse>>> getRentalsByTenant(
+            @PathVariable Long tenantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(ResponseWrapper.success(rentalService.getRentalsByTenant(tenantId, pageable)));
     }
 
     @GetMapping("/owner/{ownerId}")
     @Operation(summary = "Get rentals by owner")
-    public ResponseEntity<ResponseWrapper<List<RentalResponse>>> getRentalsByOwner(@PathVariable Long ownerId) {
-        return ResponseEntity.ok(ResponseWrapper.success(rentalService.getRentalsByOwner(ownerId)));
+    public ResponseEntity<ResponseWrapper<org.springframework.data.domain.Page<RentalResponse>>> getRentalsByOwner(
+            @PathVariable Long ownerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(ResponseWrapper.success(rentalService.getRentalsByOwner(ownerId, pageable)));
     }
 
     @PatchMapping("/{id}/status")

@@ -115,10 +115,28 @@ public class RentalService {
                 .collect(Collectors.toList());
     }
 
+    public org.springframework.data.domain.Page<RentalResponse> getRentalsByTenant(Long tenantId,
+            org.springframework.data.domain.Pageable pageable) {
+        return rentalRepository.findByTenantId(tenantId, pageable)
+                .map(this::mapToResponse);
+    }
+
     public List<RentalResponse> getRentalsByOwner(Long ownerId) {
         return rentalRepository.findByOwnerId(ownerId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public org.springframework.data.domain.Page<RentalResponse> getRentalsByOwner(Long ownerId,
+            org.springframework.data.domain.Pageable pageable) {
+        return rentalRepository.findByOwnerId(ownerId, pageable)
+                .map(this::mapToResponse);
+    }
+
+    public org.springframework.data.domain.Page<RentalResponse> getAllRentals(
+            org.springframework.data.domain.Pageable pageable) {
+        return rentalRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 
     @Transactional

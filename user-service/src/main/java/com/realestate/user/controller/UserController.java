@@ -63,8 +63,11 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get all users")
-    public ResponseEntity<ResponseWrapper<List<UserResponse>>> getAllUsers() {
-        List<UserResponse> users = userService.getAllUsers();
+    public ResponseEntity<ResponseWrapper<org.springframework.data.domain.Page<UserResponse>>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<UserResponse> users = userService.getAllUsers(pageable);
         return ResponseEntity.ok(ResponseWrapper.success(users));
     }
 

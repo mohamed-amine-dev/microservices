@@ -44,7 +44,16 @@ public class PaymentService {
             }
         } catch (Exception e) {
             log.error("Blockchain transaction failed", e);
-            // In a real app, you might want to throw an exception or mark as FAILED
+            Payment payment = Payment.builder()
+                    .rentalId(request.getRentalId())
+                    .payerId(request.getPayerId())
+                    .payeeId(request.getPayeeId())
+                    .amount(request.getAmount())
+                    .currency(request.getCurrency())
+                    .status(PaymentStatus.FAILED)
+                    .transactionHash("FAILED")
+                    .build();
+            return paymentRepository.save(payment);
         }
 
         // 2. Save Record
@@ -66,11 +75,13 @@ public class PaymentService {
                 .orElseThrow(() -> new RuntimeException("Payment not found with id: " + id));
     }
 
-    public List<Payment> getPaymentsByRental(Long rentalId) {
-        return paymentRepository.findByRentalId(rentalId);
+    public org.springframework.data.domain.Page<Payment> getPaymentsByRental(Long rentalId,
+            org.springframework.data.domain.Pageable pageable) {
+        return paymentRepository.findByRentalId(rentalId, pageable);
     }
 
-    public List<Payment> getPaymentsByPayer(Long payerId) {
-        return paymentRepository.findByPayerId(payerId);
+    public org.springframework.data.domain.Page<Payment> getPaymentsByPayer(Long payerId,
+            org.springframework.data.domain.Pageable pageable) {
+        return paymentRepository.findByPayerId(payerId, pageable);
     }
 }

@@ -1,0 +1,8 @@
+{
+  "email": "test_user_unique@example.com",
+  "password": "password123",
+  "firstName": "Test",
+  "lastName": "User",
+  "role": "BUYER",
+  "walletAddress": "0x1234567890abcdef"
+}

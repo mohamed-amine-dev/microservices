@@ -36,13 +36,21 @@ public class PaymentController {
 
     @GetMapping("/rental/{rentalId}")
     @Operation(summary = "Get payments for a rental")
-    public ResponseEntity<ResponseWrapper<List<Payment>>> getPaymentsByRental(@PathVariable Long rentalId) {
-        return ResponseEntity.ok(ResponseWrapper.success(paymentService.getPaymentsByRental(rentalId)));
+    public ResponseEntity<ResponseWrapper<org.springframework.data.domain.Page<Payment>>> getPaymentsByRental(
+            @PathVariable Long rentalId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(ResponseWrapper.success(paymentService.getPaymentsByRental(rentalId, pageable)));
     }
 
     @GetMapping("/payer/{payerId}")
     @Operation(summary = "Get payments by payer")
-    public ResponseEntity<ResponseWrapper<List<Payment>>> getPaymentsByPayer(@PathVariable Long payerId) {
-        return ResponseEntity.ok(ResponseWrapper.success(paymentService.getPaymentsByPayer(payerId)));
+    public ResponseEntity<ResponseWrapper<org.springframework.data.domain.Page<Payment>>> getPaymentsByPayer(
+            @PathVariable Long payerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(ResponseWrapper.success(paymentService.getPaymentsByPayer(payerId, pageable)));
     }
 }

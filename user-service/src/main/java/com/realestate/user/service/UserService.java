@@ -53,10 +53,14 @@ public class UserService {
                 .active(true)
                 .build();
 
-        User savedUser = userRepository.save(user);
-        String token = jwtService.generateToken(savedUser);
-
-        return new AuthResponse(token, userMapper.toUserResponse(savedUser));
+        try {
+            User savedUser = userRepository.save(user);
+            String token = jwtService.generateToken(savedUser);
+            return new AuthResponse(token, userMapper.toUserResponse(savedUser));
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new com.realestate.common.exception.BadRequestException(
+                    "User with this email or wallet address already exists");
+        }
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -81,10 +85,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(userMapper::toUserResponse)
-                .collect(Collectors.toList());
+    public org.springframework.data.domain.Page<UserResponse> getAllUsers(
+            org.springframework.data.domain.Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(userMapper::toUserResponse);
     }
 
     public UserResponse updateUser(Long id, UpdateUserRequest request) {

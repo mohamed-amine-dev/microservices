@@ -17,13 +17,24 @@ Allowed Methods: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS`.
 Most endpoints require a JWT token for authentication.
 **Header:** `Authorization: Bearer <your_token>`
 
+### Response Format
+All API responses follow a standard wrapper format:
+
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... } // The actual payload
+}
+```
+
 ## Services & Endpoints
 
 ### 1. User Service
 **Base Path:** `/api/users`
 
 | Method | Endpoint | Description | Auth Required |
-|lz|---|---|---|
+|---|---|---|---|
 | POST | `/register` | Register a new user | No |
 | POST | `/login` | Authenticate and get JWT | No |
 | GET | `/profile/{id}` | Get user profile by ID | Yes |
@@ -34,15 +45,25 @@ Most endpoints require a JWT token for authentication.
 | DELETE | `/{id}` | Delete user | Yes (Admin) |
 | POST | `/verify-email/{userId}` | Verify user email | No |
 
-**Register Payload:**
+#### Payloads
+
+**Register Request:**
 ```json
 {
   "email": "user@example.com",
-  "password": "SecurePassword123",
+  "password": "SecurePassword123", // Min 6 chars
   "firstName": "John",
   "lastName": "Doe",
-  "role": "BUYER", // BUYER, SELLER, OWNER, TENANT
+  "role": "BUYER", // Options: ADMIN, BUYER, SELLER, OWNER, TENANT
   "walletAddress": "0x123..." // Optional
+}
+```
+
+**Login Request:**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123"
 }
 ```
 
@@ -58,23 +79,28 @@ Most endpoints require a JWT token for authentication.
 | DELETE | `/{id}` | Delete property | Yes (Owner/Admin) |
 | PATCH | `/{id}/status` | Update property status | Yes (Owner/Admin) |
 
-**Search Parameters:**
-- `city`, `country`, `minPrice`, `maxPrice`, `bedrooms`, `status`
+#### Search Parameters (Query Params)
+`city`, `country`, `minPrice`, `maxPrice`, `bedrooms`, `status`
 
-**Create Property Payload:**
+#### Payloads
+
+**Create/Update Property Request:**
 ```json
 {
   "title": "Luxury Apartment",
   "description": "Beautiful view...",
-  "price": 1500.00,
   "address": "123 Main St",
   "city": "New York",
   "country": "USA",
-  "type": "APARTMENT", // APARTMENT, HOUSE, VILLA
-  "bedrooms": 2,
-  "bathrooms": 1,
-  "area": 85.5,
-  "images": ["url1", "url2"]
+  "latitude": 40.7128, // Optional
+  "longitude": -74.0060, // Optional
+  "pricePerMonth": 1500.00,
+  "depositAmount": 3000.00,
+  "bedroomCount": 2,
+  "bathroomCount": 1,
+  "squareMeters": 85.5,
+  "propertyType": "APARTMENT", // APARTMENT, HOUSE, VILLA, COMMERCIAL
+  "ownerId": 1
 }
 ```
 
@@ -89,14 +115,18 @@ Most endpoints require a JWT token for authentication.
 | GET | `/owner/{ownerId}` | Get rentals for owner | Yes |
 | PATCH | `/{id}/status` | Update rental status | Yes |
 
-**Create Rental Payload:**
+#### Payloads
+
+**Create Rental Request:**
 ```json
 {
   "propertyId": 1,
   "tenantId": 1,
+  "ownerId": 1, 
   "startDate": "2025-01-01",
   "endDate": "2025-12-31",
-  "monthlyRent": 1500.00
+  "monthlyRent": 1500.00,
+  "depositAmount": 3000.00
 }
 ```
 
@@ -110,15 +140,16 @@ Most endpoints require a JWT token for authentication.
 | GET | `/rental/{rentalId}` | Get payments for a rental | Yes |
 | GET | `/payer/{payerId}` | Get payments by payer | Yes |
 
-**Payment Payload:**
+#### Payloads
+
+**Payment Request:**
 ```json
 {
   "rentalId": 1,
   "payerId": 1,
+  "payeeId": 2,
   "amount": 1500.00,
-  "currency": "USD", // or ETH
-  "method": "CREDIT_CARD", // CREDIT_CARD, CRYPTO
-  "transactionHash": "0x..." // If CRYPTO
+  "currency": "USD" // Default: USD
 }
 ```
 
@@ -130,12 +161,20 @@ Most endpoints require a JWT token for authentication.
 | POST | `/transaction` | Execute smart contract transaction | Yes |
 | GET | `/contract/{address}` | Get smart contract state | Yes |
 
+#### Payloads
+
 **Smart Contract Request:**
 ```json
 {
-  "contractAddress": "0x...",
   "functionName": "payRent",
-  "parameters": ["..."]
+  "propertyId": 1,
+  "walletAddress": "0xUserWallet...", // Optional
+  "value": 1500.00, // Optional, for payable functions
+  "contractAddress": "0xContract...", // Optional
+  "parameters": { // Map of arguments
+    "arg1": "value1",
+    "arg2": 123
+  }
 }
 ```
 
@@ -147,22 +186,28 @@ Most endpoints require a JWT token for authentication.
 | POST | `/` | Send a notification (System use) | Yes |
 | GET | `/user/{userId}` | Get user notifications | Yes |
 
-## Error Handling
+#### Payloads
 
-Standard Error Response:
+**Notification Request:**
 ```json
 {
-  "success": false,
-  "message": "Error description",
-  "data": null
+  "userId": 1,
+  "recipientEmail": "user@example.com",
+  "subject": "Payment Received",
+  "message": "Your payment for January has been received."
 }
 ```
 
-Common HTTP Codes:
-- `200`: Success
-- `201`: Created
-- `400`: Bad Request (Validation failed)
-- `401`: Unauthorized (Invalid/Missing Token)
-- `403`: Forbidden (Insufficient permissions)
-- `404`: Not Found
-- `500`: Internal Server Error
+## Enumerations
+
+**Roles:**
+`ADMIN`, `BUYER`, `SELLER`, `OWNER`, `TENANT`
+
+**Property Types:**
+`APARTMENT`, `HOUSE`, `VILLA`, `COMMERCIAL`
+
+**Property Status:**
+`AVAILABLE`, `RENTED`, `MAINTENANCE`
+
+**Rental Status:**
+`PENDING`, `ACTIVE`, `COMPLETED`, `CANCELLED`, `TERMINATED`
